@@ -10,23 +10,25 @@
 #include <ctype.h>
 #include <string.h>
 
-#define COLS 100	/* max number of columns of data */
-#define ROWS 1000	/* max number of rows of data */
-#define LINELEN	1000	/* max input line length */
-#define MAXPROJECT 100	/* max number of columns to project onto */
-#define TRUE 1
-#define FALSE 0
+#define COLS 		100		/* max number of columns of data */
+#define ROWS 		1000	/* max number of rows of data */
+#define LINELEN		1000	/* max input line length */
+#define MAXPROJECT 	100		/* max number of columns to project onto */
+#define TRUE 		1
+#define FALSE 		0
 
-#define DATADELIM ","	/* column delimeter for record input/output */
+#define DATADELIM ","		/* column delimeter for record input/output */
+#define SEL_OPERATORS "<>=" /*operators that Select command accepts */
 
-#define ERROR (-1)	/* error return value from some functions */
+#define ERROR (-1)			/* error return value from some functions */
 
-#define ADD		'a'	/* command to add a record to data */
-#define PRINT		'?'	/* command to print the data */
-#define PROJECT		'p'	/* command to project data */
-#define ALLCOMMANDS	"a?p"	/* list of all commands */
+#define ADD			'a'		/* command to add a record to data */
+#define PRINT		'?'		/* command to print the data */
+#define PROJECT		'p'		/* command to project data */
+#define SELECT 		's' 	/* command to select data */
+#define ALLCOMMANDS	"a?ps"	/* list of all commands */
 
-typedef int record_t[COLS];	/* one element of data */
+typedef int record_t[COLS];		/* one element of data */
 typedef record_t data_t[ROWS];	/* a dataset of records */
 
 /****************************************************************/
@@ -264,6 +266,21 @@ process_line(data_t data, int *rows, int *cols, char *line, int *first_line) {
 		}
 		do_project(data, temp_data, *rows, *cols, columns, len);
 		print_data(temp_data, *rows, len);
+	} else if (comtype == SELECT){
+		len = parse_integers(line+1, SEL_OPERATORS, columns,
+		                     MAXPROJECT, *first_line);
+		if (len == ERROR) {
+			printf("Invalid target columns specified.\n");
+			return;
+		}
+		for (i=0; (i<len) && (i<MAXPROJECT); i++) {
+			if (columns[i] < 1 || columns[i] > *cols) {
+				printf("Invalid column %d.\n", columns[i]);
+				return;
+			}
+		}
+		do_project(data, temp_data, *rows, *cols, columns, len);
+		print_data(temp_data, *rows, len);
 	}
 	return;
 }
@@ -279,7 +296,6 @@ do_add(record_t record, data_t data, int *rows, int cols) {
 		return;
 	}
 	copy_record(data[(*rows)++], record, cols);
-	printf("Rows: %d\n", *rows);
 	printf("Added record: ");
 	print_record(record, cols);
 }
@@ -300,4 +316,17 @@ do_project(data_t src, data_t dest, int rows, int cols,
 		}
 	}
 }
-
+/*
+do_select(data_t src, data_t dest, int rows, int cols,
+           int target[], int target_len) {
+	int i, j, k;
+	for (i=0; i<rows; i++) {
+		for (j=0, k=0; j<target_len; j++, k++) {
+				if (){
+					
+				}
+			dest[i][k] = src[i][target[j] - 1];
+		}
+	}
+}
+*/
