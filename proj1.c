@@ -64,6 +64,7 @@ main(int argc, char *argv[]) {
 	print_prompt();
 	while (read_line(line, LINELEN)) {
 		process_line(data, &rows, &cols, line, &first_line);
+							 &pipe_count, &first_pipe, &mid_pipe,
 		print_prompt();
 	}
 
